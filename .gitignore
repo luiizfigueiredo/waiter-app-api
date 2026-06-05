@@ -1,0 +1,25 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.log
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea/
+.vs/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (runtime)
+waiter-app-api/wwwroot/uploads/
