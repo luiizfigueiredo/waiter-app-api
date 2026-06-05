@@ -1,4 +1,5 @@
 using WaiterApp.Models;
+using WaiterApp.Notifications;
 using WaiterApp.Repositories.Interfaces;
 using WaiterApp.Services.Interfaces;
 
@@ -10,13 +11,16 @@ public class OrderService : IOrderService
 
     private readonly IOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
+    private readonly IOrderNotifier _notifier;
 
     public OrderService(
         IOrderRepository orderRepository,
-        IProductRepository productRepository)
+        IProductRepository productRepository,
+        IOrderNotifier notifier)
     {
         _orderRepository = orderRepository;
         _productRepository = productRepository;
+        _notifier = notifier;
     }
 
     public async Task<List<Order>> GetAllAsync()
@@ -49,7 +53,14 @@ public class OrderService : IOrderService
             OrderItems = orderItems
         };
 
-        return await _orderRepository.CreateAsync(order);
+        var created = await _orderRepository.CreateAsync(order);
+
+        // Re-fetch with full product graph so the kitchen card has product details.
+        var fullOrder = await _orderRepository.GetByIdWithDetailsAsync(created.Id) ?? created;
+
+        await _notifier.OrderCreatedAsync(fullOrder);
+
+        return fullOrder;
     }
 
     public async Task UpdateStatusAsync(Guid orderId, string status)
@@ -57,11 +68,14 @@ public class OrderService : IOrderService
         if (!ValidStatuses.Contains(status))
             throw new ArgumentException($"Status must be one of: {string.Join(", ", ValidStatuses)}.", nameof(status));
 
-        var order = await _orderRepository.GetByIdAsync(orderId);
+        var order = await _orderRepository.GetByIdWithDetailsAsync(orderId);
         if (order is null)
             throw new InvalidOperationException($"Order with id '{orderId}' not found.");
 
         await _orderRepository.UpdateStatusAsync(orderId, status);
+
+        order.Status = status;
+        await _notifier.OrderStatusChangedAsync(order);
     }
 
     public async Task DeleteAsync(Guid orderId)
@@ -71,5 +85,7 @@ public class OrderService : IOrderService
             throw new InvalidOperationException($"Order with id '{orderId}' not found.");
 
         await _orderRepository.DeleteAsync(orderId);
+
+        await _notifier.OrderDeletedAsync(orderId, order.Table);
     }
 }

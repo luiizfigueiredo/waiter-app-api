@@ -30,6 +30,18 @@ public class OrderRepository : IOrderRepository
             .Include(o => o.OrderItems)
             .FirstOrDefaultAsync(o => o.Id == id);
 
+    public async Task<Order?> GetByIdWithDetailsAsync(Guid id)
+        => await _context.Orders
+            .AsNoTracking()
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .ThenInclude(p => p!.Category)
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .ThenInclude(p => p!.Ingredients)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(o => o.Id == id);
+
     public async Task<Order> CreateAsync(Order order)
     {
         _context.Orders.Add(order);

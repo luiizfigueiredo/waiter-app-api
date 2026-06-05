@@ -5,13 +5,19 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using WaiterApp.Data;
+using WaiterApp.Hubs;
 using WaiterApp.Middleware;
+using WaiterApp.Notifications;
 using WaiterApp.Repositories;
 using WaiterApp.Repositories.Interfaces;
 using WaiterApp.Services;
 using WaiterApp.Services.Interfaces;
 
+const string CorsPolicy = "frontend";
+
+// Load .env from current directory (solution root) or parent of content root (project dir)
 Env.Load();
+Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", ".env"));
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +34,21 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+
+// SignalR real-time
+builder.Services.AddSignalR();
+builder.Services.AddScoped<IOrderNotifier, OrderNotifier>();
+
+// CORS (SignalR with credentials requires explicit origins, no wildcard)
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CorsPolicy, policy =>
+        policy.WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials());
+});
 
 // FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -49,6 +70,9 @@ Directory.CreateDirectory(uploadsPath);
 
 app.UseStaticFiles();
 
+app.UseCors(CorsPolicy);
+
 app.MapControllers();
+app.MapHub<OrderHub>("/hubs/orders");
 
 app.Run();
