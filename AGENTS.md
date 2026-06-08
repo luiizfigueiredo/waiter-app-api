@@ -58,3 +58,17 @@ Controllers → Services (Interfaces/) → Repositories (Interfaces/) → AppDbC
 - No CI/CD workflows
 - No Swagger UI wired up (only the `Microsoft.AspNetCore.OpenApi` package is referenced)
 - The `.http` file still references the default `weatherforecast` endpoint
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues on `luiizfigueiredo/waiter-app-api` (uses the `gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five canonical roles, each mapped to its default label string (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context — one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.

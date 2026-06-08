@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text.Json;
 using FluentValidation;
 using WaiterApp.DTOs;
 
@@ -28,9 +27,9 @@ public class CreateProductRequestValidator : AbstractValidator<CreateProductRequ
             .NotEmpty().WithMessage("Category is required")
             .Must(BeValidGuid).WithMessage("Invalid category id");
 
-        RuleFor(x => x.Ingredients)
-            .Must(BeValidIngredientsJson).WithMessage("Invalid ingredients format")
-            .When(x => !string.IsNullOrWhiteSpace(x.Ingredients));
+        RuleForEach(x => x.IngredientIds)
+            .NotEmpty().WithMessage("Invalid ingredient id")
+            .When(x => x.IngredientIds is not null);
     }
 
     private static bool BeValidPrice(string price)
@@ -38,18 +37,4 @@ public class CreateProductRequestValidator : AbstractValidator<CreateProductRequ
 
     private static bool BeValidGuid(string id)
         => Guid.TryParse(id, out _);
-
-    private static bool BeValidIngredientsJson(string? json)
-    {
-        try
-        {
-            JsonSerializer.Deserialize<List<IngredientDto>>(
-                json!, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
 }

@@ -2,6 +2,7 @@ namespace WaiterApp.DTOs;
 
 public class IngredientDto
 {
+    public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
 }
@@ -13,7 +14,7 @@ public class CreateProductRequest
     public string Description { get; set; } = string.Empty;
     public string Price { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
-    public string? Ingredients { get; set; }
+    public List<Guid>? IngredientIds { get; set; }
 }
 
 public class ProductResponse

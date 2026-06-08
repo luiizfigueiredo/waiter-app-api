@@ -1,5 +1,3 @@
-using System.Text.Json;
-using WaiterApp.DTOs;
 using WaiterApp.Models;
 using WaiterApp.Repositories.Interfaces;
 using WaiterApp.Services.Interfaces;
@@ -10,13 +8,16 @@ public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepository;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly IIngredientRepository _ingredientRepository;
 
     public ProductService(
         IProductRepository productRepository,
-        ICategoryRepository categoryRepository)
+        ICategoryRepository categoryRepository,
+        IIngredientRepository ingredientRepository)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
+        _ingredientRepository = ingredientRepository;
     }
 
     public async Task<List<Product>> GetAllAsync()
@@ -30,27 +31,21 @@ public class ProductService : IProductService
         decimal price,
         string imagePath,
         Guid categoryId,
-        string? ingredientsJson)
+        List<Guid>? ingredientIds)
     {
         var category = await _categoryRepository.GetByIdAsync(categoryId);
         if (category is null)
             throw new InvalidOperationException($"Category with id '{categoryId}' not found.");
 
         var ingredients = new List<Ingredient>();
-        if (!string.IsNullOrWhiteSpace(ingredientsJson))
+        if (ingredientIds is { Count: > 0 })
         {
-            var dtos = JsonSerializer.Deserialize<List<IngredientDto>>(
-                ingredientsJson,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            ingredients = await _ingredientRepository.GetByIdsAsync(ingredientIds);
 
-            if (dtos is not null)
-            {
-                ingredients = dtos.Select(d => new Ingredient
-                {
-                    Name = d.Name,
-                    Icon = d.Icon
-                }).ToList();
-            }
+            var missingIds = ingredientIds.Except(ingredients.Select(i => i.Id)).ToList();
+            if (missingIds.Count > 0)
+                throw new InvalidOperationException(
+                    $"Ingredient(s) not found: {string.Join(", ", missingIds)}");
         }
 
         var product = new Product

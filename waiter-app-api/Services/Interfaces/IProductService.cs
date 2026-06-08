@@ -11,5 +11,5 @@ public interface IProductService
         decimal price,
         string imagePath,
         Guid categoryId,
-        string? ingredientsJson);
+        List<Guid>? ingredientIds);
 }

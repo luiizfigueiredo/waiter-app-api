@@ -56,7 +56,7 @@ public class CategoriesController : ControllerBase
         Description = p.Description,
         ImagePath = p.ImagePath,
         Price = p.Price,
-        Ingredients = p.Ingredients.Select(i => new IngredientDto { Name = i.Name, Icon = i.Icon }).ToList(),
+        Ingredients = p.Ingredients.Select(i => new IngredientDto { Id = i.Id, Name = i.Name, Icon = i.Icon }).ToList(),
         Category = category
     };
 }

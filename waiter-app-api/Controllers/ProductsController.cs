@@ -51,7 +51,7 @@ public class ProductsController : ControllerBase
             price,
             filename,
             categoryId,
-            request.Ingredients);
+            request.IngredientIds);
 
         return StatusCode(201, MapToResponse(product));
     }
@@ -63,7 +63,7 @@ public class ProductsController : ControllerBase
         Description = p.Description,
         ImagePath = p.ImagePath,
         Price = p.Price,
-        Ingredients = p.Ingredients.Select(i => new IngredientDto { Name = i.Name, Icon = i.Icon }).ToList(),
+        Ingredients = p.Ingredients.Select(i => new IngredientDto { Id = i.Id, Name = i.Name, Icon = i.Icon }).ToList(),
         Category = p.Category is not null ? new CategoryResponse
         {
             Id = p.Category.Id,

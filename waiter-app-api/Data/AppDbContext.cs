@@ -44,11 +44,11 @@ public class AppDbContext : DbContext
             entity.HasKey(i => i.Id);
             entity.Property(i => i.Name).IsRequired().HasMaxLength(100);
             entity.Property(i => i.Icon).IsRequired().HasMaxLength(50);
+            entity.HasIndex(i => i.Name).IsUnique();
 
-            entity.HasOne(i => i.Product)
+            entity.HasMany(i => i.Products)
                   .WithMany(p => p.Ingredients)
-                  .HasForeignKey(i => i.ProductId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .UsingEntity(j => j.ToTable("ProductIngredients"));
         });
 
         // Order
